@@ -1,26 +1,68 @@
 package com.example.afinal;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCanceledListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.Firebase;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
-
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
     private List<Item> items;
 
-    public ItemAdapter(){
+    public ItemAdapter() {
         items = new ArrayList<>();
+        db.collection("Items")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            items.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("ID").toString());
+                                items.add(c);
+                            }
+                            notifyDataSetChanged();
+                        }
+                    }
+                });
+        db.collection("Items").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                items.clear();
+                for (QueryDocumentSnapshot document : value) {
+                    Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("ID").toString());
+                    items.add(c);
+                }
+                notifyDataSetChanged();
+            }
+        });
+
+
     }
 
-    public ItemAdapter(List<Item> items) {
-        this.items = items;
-    }
+
 
     @NonNull
     @Override
@@ -37,13 +79,28 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         holder.name_item.setText(item.getName());
         holder.brand_name.setText(item.getBrand());
         holder.color.setBackgroundColor(android.graphics.Color.parseColor(item.getColor()));
-        holder.image_item.setImageResource(item.getImage());
+        holder.image_item.setImageURI(Uri.parse(item.getImage()));
+        //Glide.with(holder.image_item).load(item.getImage()).into(holder.image_item);
         holder.price_item.setText(item.getPrice());
-
-
-
-
+        holder.card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(),Rv_Category.class);
+                intent.putExtra("item",item);
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        (Activity) v.getContext(),
+                        holder.card,
+                        "cardtransition"
+                );
+                v.getContext().startActivity(intent,options.toBundle());
+            }
+        });
     }
+
+
+
+
+
 
     @Override
     public int getItemCount() {

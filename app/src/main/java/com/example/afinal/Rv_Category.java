@@ -1,16 +1,34 @@
 package com.example.afinal;
 
+import android.media.RouteListingPreference;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Rv_Category extends AppCompatActivity {
+
+    private RecyclerView rv_item;
+    private ItemAdapter adapter;
+    private List<Item> filteredItems = new ArrayList<>();
+    private String selectedCategory = "";
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +36,7 @@ public class Rv_Category extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_rv_category);
 
-        RecyclerView rv_item = findViewById(R.id.CategoryViewLayout);
+        rv_item = findViewById(R.id.CategoryViewLayout);
         rv_item.setHasFixedSize(false);
 
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2);
@@ -26,48 +44,51 @@ public class Rv_Category extends AppCompatActivity {
 
 
         Bundle bundle = getIntent().getExtras();
-        String selectedCategory = "";
         if (bundle != null) {
             selectedCategory = bundle.getString("selectedCategory", "");
         }
+        loadItemsByCategory();
 
-
-        List<Item> filteredItems = new ArrayList<>();
-        for (Item item : getAllItems()) {
-            if (item.getCategory().equals(selectedCategory)) {
-                filteredItems.add(item);
-            }
-        }
-
-        ItemAdapter adapter = new ItemAdapter(filteredItems);
-        rv_item.setAdapter(adapter);
-
-
-
+        //Glide.with(rv_item).load(item.getImage()).into(rv_item);
     }
 
+    private void loadItemsByCategory() {
+        db.collection("Items")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            Toast.makeText(Rv_Category.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-    private List<Item> getAllItems() {
-        List<Item> items = new ArrayList<>();
-        items.add(new Item("Kelly 28", "HERMES", "#42151C", "Bags", R.drawable.kelly, "13,900" +"$"));
-        items.add(new Item("Birkin", "HERMES", "#2A160B", "Bags", R.drawable.birkin, "80,000" +"$"));
-        items.add(new Item("Bisou", "JACQUEMUS", "#321D29" ,"Bags", R.drawable.bisou1, "1,300" +"$"));
-        items.add(new Item("Loulou", "YSL", "#151515" ,"Bags", R.drawable.loulou, "3,000" +"$"));
-        items.add(new Item("Dionysus", "GUCCI", "#1E1E1E" ,"Bags", R.drawable.dionysus1, "3,200" +"$"));
-        items.add(new Item("Jodie mini", "BOTTEGA VENETA", "#4A3F3D" ,"Bags", R.drawable.minijodie, "2,800" +"$"));
-        items.add(new Item("Le 5 à 7", "YSL", "#151515" ,"Bags", R.drawable.minile5a71, "1,700" +"$"));
-        items.add(new Item("Suede", "MIUMIU", "#311D16" ,"Bags", R.drawable.suede1, "270" +"$"));
-        items.add(new Item("MU 11ws", "MIUMIU", "#151515" ,"Sunglass", R.drawable.mu11ws, "200" +"$"));
-        items.add(new Item("Leather loose crop jacket", "ST. AGNI", "#4A3B38" ,"Clothing", R.drawable.real_leather_loose_crop_jacket___brown_1, "750" +"$"));
-        items.add(new Item("Shacklewell hopea", "VIVIENNE WEATWOOD", "#B9B9B9" ,"Watch", R.drawable.shacklewell_hopea, "290" +"$"));
-        items.add(new Item("ZW leather jacket", "ZARA", "#AC6F39" ,"Clothing", R.drawable.zw_leather_jacket, "150" +"$"));
-        items.add(new Item("Black glasses", "PRADA", "#151515" ,"Sunglass", R.drawable.prada_sunglass, "270" +"$"));
-        items.add(new Item("Burgandy blazer", "ZARA", "#271F26" ,"Clothing", R.drawable.blazer, "150" +"$"));
-        items.add(new Item("Sunglass", "CELINE", "#151515" ,"Sunglass", R.drawable.celin_sunglass, "300" +"$"));
-        items.add(new Item("501 Jeans", "LEVI'S", "#7C8CA5" ,"Clothing", R.drawable.blu_jeans, "90" +"$"));
-        items.add(new Item("Black loafer", "PRADA", "#151515" ,"Shoes", R.drawable.loafer, "250" +"$"));
+                        if (value != null) {
+                            filteredItems.clear();
+                            for (QueryDocumentSnapshot doc : value) {
+                                String name = doc.getString("Name");
+                                String brand = doc.getString("Brand");
+                                String color = doc.getString("Color");
+                                String category = doc.getString("Category");
+                                String image = doc.getString("Image");
+                                String price = doc.getString("Price");
+                                String id = doc.getString("ID");
 
+                                if (category != null && category.equalsIgnoreCase(selectedCategory)) {
+                                    Item item = new Item(name, brand, color, category, image, price, id);
+                                    filteredItems.add(item);
+                                }
+                            }
 
-        return items;
+                            adapter.notifyDataSetChanged();
+
+                            if (filteredItems.isEmpty()) {
+                                Toast.makeText(Rv_Category.this, "No items found in this category", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
     }
 }
+
+
+
