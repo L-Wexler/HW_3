@@ -47,48 +47,8 @@ public class Rv_Category extends AppCompatActivity {
         if (bundle != null) {
             selectedCategory = bundle.getString("selectedCategory", "");
         }
-        loadItemsByCategory();
 
-        //Glide.with(rv_item).load(item.getImage()).into(rv_item);
-    }
-
-    private void loadItemsByCategory() {
-        db.collection("Items")
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        if (error != null) {
-                            Toast.makeText(Rv_Category.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        if (value != null) {
-                            filteredItems.clear();
-                            for (QueryDocumentSnapshot doc : value) {
-                                String name = doc.getString("Name");
-                                String brand = doc.getString("Brand");
-                                String color = doc.getString("Color");
-                                String category = doc.getString("Category");
-                                String image = doc.getString("Image");
-                                String price = doc.getString("Price");
-                                String id = doc.getString("ID");
-
-                                if (category != null && category.equalsIgnoreCase(selectedCategory)) {
-                                    Item item = new Item(name, brand, color, category, image, price, id);
-                                    filteredItems.add(item);
-                                }
-                            }
-
-                            adapter.notifyDataSetChanged();
-
-                            if (filteredItems.isEmpty()) {
-                                Toast.makeText(Rv_Category.this, "No items found in this category", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                });
+        adapter = new ItemAdapter(selectedCategory);
+        rv_item.setAdapter(adapter);
     }
 }
-
-
-

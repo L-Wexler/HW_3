@@ -13,10 +13,8 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -30,8 +28,11 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private List<Item> items;
 
-    public ItemAdapter() {
+    private String SelectedCategory;
+
+    public ItemAdapter(String selectedCategory) {
         items = new ArrayList<>();
+        SelectedCategory = selectedCategory;
         db.collection("Items")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -40,8 +41,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
                         if (task.isSuccessful()) {
                             items.clear();
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("ID").toString());
-                                items.add(c);
+                                Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("price").toString());
+                                if (c.getCategory().equals(selectedCategory)) {
+                                    items.add(c);
+                                }
                             }
                             notifyDataSetChanged();
                         }
@@ -52,8 +55,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 items.clear();
                 for (QueryDocumentSnapshot document : value) {
-                    Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("ID").toString());
-                    items.add(c);
+                    Item c = new Item(document.get("name").toString(),document.get("brand").toString(),document.get("color").toString(),document.get("category").toString(), document.get("image").toString(), document.get("price").toString());
+                    if (c.getCategory().equals(selectedCategory)) {
+                        items.add(c);
+                    }
                 }
                 notifyDataSetChanged();
             }
@@ -79,8 +84,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         holder.name_item.setText(item.getName());
         holder.brand_name.setText(item.getBrand());
         holder.color.setBackgroundColor(android.graphics.Color.parseColor(item.getColor()));
-        holder.image_item.setImageURI(Uri.parse(item.getImage()));
-        //Glide.with(holder.image_item).load(item.getImage()).into(holder.image_item);
+        //holder.image_item.setImageURI(Uri.parse(item.getImage()));
+        Glide.with(holder.image_item).load(item.getImage()).into(holder.image_item);
         holder.price_item.setText(item.getPrice());
         holder.card.setOnClickListener(new View.OnClickListener() {
             @Override
