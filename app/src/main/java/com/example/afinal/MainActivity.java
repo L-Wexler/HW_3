@@ -1,6 +1,8 @@
 package com.example.afinal;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +43,13 @@ public class MainActivity extends AppCompatActivity {
 
         CategoryAdapter adapter = new CategoryAdapter();
         RvCategory.setAdapter(adapter);
+
+        ImageView profileIcon = findViewById(R.id.profile_ic);
+
+        profileIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
     }
 
 }
