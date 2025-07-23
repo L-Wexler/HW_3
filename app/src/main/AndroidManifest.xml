@@ -34,6 +34,7 @@
         </activity>
         <activity android:name=".MainActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
+        <activity android:name=".FullDetailActivity" android:exported="false" />
     </application>
 
 </manifest>

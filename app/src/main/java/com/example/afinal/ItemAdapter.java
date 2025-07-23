@@ -67,6 +67,28 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     }
 
+    public ItemAdapter() {
+        items = new ArrayList<>();
+
+        db.collection("Items").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                items.clear();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Item c = new Item(
+                            document.get("name").toString(),
+                            document.get("brand").toString(),
+                            document.get("color").toString(),
+                            document.get("category").toString(),
+                            document.get("image").toString(),
+                            document.get("price").toString()
+                    );
+                    items.add(c);
+                }
+                notifyDataSetChanged();
+            }
+        });
+    }
+
 
 
     @NonNull
@@ -90,8 +112,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
         holder.card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(),Rv_Category.class);
-                intent.putExtra("item",item);
+                Intent intent = new Intent(v.getContext(), FullDetailActivity.class);
+                intent.putExtra("item", item);
+                v.getContext().startActivity(intent);
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                         (Activity) v.getContext(),
                         holder.card,
