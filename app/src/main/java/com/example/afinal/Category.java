@@ -1,19 +1,26 @@
 package com.example.afinal;
 
-public class Category {
-    private String Category;
-    private int Image;
+import java.io.Serializable;
 
-    public Category(String category, int image){
+public class Category implements Serializable {
+    private String ID;
+    private String Category;
+    private String Image;
+
+    public Category(String category, String id, String image){
+        this.ID = String.valueOf(System.currentTimeMillis());
         this.Category = category;
         this.Image = image;
     }
 
+    public String getID() {
+        return ID;
+    }
     public String getCategory() {
         return Category;
     }
 
-    public int getImage(){
+    public String getImage(){
         return Image;
     }
 }

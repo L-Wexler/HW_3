@@ -44,15 +44,15 @@ public class LoginActivity extends AppCompatActivity {
 
         ImageView LogoView = findViewById(R.id.intro_logo);
 
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("LoginActivity").document("intro logo")
+        db.collection("LoginActicity").document("intro logo")
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    String gifUrl = documentSnapshot.getString("logoURL");
+                    String imageUrl = documentSnapshot.getString("logoURL");
 
                     Glide.with(this)
-                            .asGif()
-                            .load(gifUrl)
+                            .load(imageUrl)
                             .into(LogoView);
                 });
 
